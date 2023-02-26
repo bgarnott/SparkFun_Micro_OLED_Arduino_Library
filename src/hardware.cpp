@@ -99,7 +99,7 @@ void MicroOLED::i2cWrite(byte address, byte dc, byte data)
 	_i2cPort->beginTransmission(address);
 	_i2cPort->write(dc); // If data dc = 0, if command dc = 0x40
 	_i2cPort->write(data);
-	_i2cPort->endTransmission();
+	_i2cPort->endTransmission();  
 }
 
 /** \brief  Write multiple data bytes over I2C
@@ -128,19 +128,29 @@ boolean MicroOLED::i2cWriteMultiple(uint8_t address, uint8_t *dataBytes, size_t 
     bytesWrittenTotal += bytesWritten; // Update the totals
     bytesLeftToWrite -= bytesToWrite;
     dataBytes += bytesToWrite; // Point to fresh data
-
+/*
     if (bytesLeftToWrite > 0)
     {
+	{
       if (_i2cPort->endTransmission(false) != 0) //Send a restart command. Do not release bus.
         return (false);                          //Sensor did not ACK
-    }
+  	}
     else
     {
       if (_i2cPort->endTransmission() != 0) //We're done. Release bus.
         return (false);                     //Sensor did not ACK
-    }
-  }
+ 	}
+*/
 
+	// BARNO: Changed to make system always end transmission. Holding the I2C bus does
+	// not work on ESP32
+
+    if (_i2cPort->endTransmission() != 0)
+	{
+        return (false);                          //Sensor did not ACK
+  	}
+
+  }
   return (bytesWrittenTotal == numDataBytes);
 }
 
